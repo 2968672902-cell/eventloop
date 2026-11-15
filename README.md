@@ -4,6 +4,12 @@
 
 A separate two-account, local-server prototype is available in [`shared/`](shared/README.md). On Windows, start it with `Start-EventLoop.cmd`, then open `http://127.0.0.1:8787/` and `http://localhost:8787/` for two isolated login sessions on the same computer. It supports shared direct-handoff and storage-bridge requests and two-party confirmation. Storage access and transportation must still be arranged with the relevant people. It is not publicly deployed. Use test-only passwords and see the shared README for limits and instructions.
 
+### Run and explore the shared prototype
+
+Install Node.js 24 or later and run `node shared/server.mjs` from this directory. Open `http://127.0.0.1:8787/` and `http://localhost:8787/` in separate tabs: these hostnames use separate login sessions but share the same local database. Register two test accounts using dedicated test passwords. As the first user, add an item and, if needed, a storage point. As the second, refresh the page and request a pickup. Return to the first user, refresh and accept; both users can then separately confirm a handoff. Updates require manual refresh.
+
+The service listens only on the local computer. The date-based storage capacity model does not verify the physical location, safety, transport or approval by a storage manager. In-app confirmations do not prove a physical handoff or measured waste reduction. `worker/` contains an experimental cloud adaptation, tested locally with a database shim only; it has not been deployed or validated on Cloudflare D1.
+
 ## Earlier single-browser planner (v2)
 
 The remainder of this README describes the separate v2 planner in the root directory. Its localStorage and features are independent of the shared prototype above.
@@ -61,3 +67,4 @@ EventLoop was developed with AI assistance from OpenAI Codex for concept explora
 - Pilot a small number of permission-based handoffs, recording failed as well as completed transfers and an explicit baseline.
 - Consider shared accounts, two-party confirmation and conflict-safe reservations after validating the workflow.
 - Model physical fit, accepted material types, transport and time-of-day constraints where reliable information is available.
+

@@ -1,0 +1,9 @@
+# Experimental D1 adapter
+
+This is a separate deployment adaptation of `shared/` for a Cloudflare Worker with a D1 binding named `DB`. It is **not deployed**. Accounts created by the localhost prototype do not carry over: the deployed service uses an independent database and PBKDF2 password hashes rather than the local prototype's scrypt hashes. Do not copy real credentials or `.data/` into a deploy package.
+
+`migrations/0001_schema.sql` creates a fresh database schema and a SQLite trigger that checks overlapping accepted/completed storage reservations against the configured capacity while the acceptance write is atomic. D1 batch statements change the request, item, and competing requests in one batch. Requests after venue clearance require an eligible storage point. This is a candidate for real D1 validation, not proof of a successful deployment or a security review.
+
+`node --no-warnings worker/test.mjs` exercises authorization, two-party confirmation, and one-slot storage contention using an in-memory Node SQLite shim for the D1 interface. It does not test Cloudflare D1, Worker runtime, public traffic, persistence across real deployments, or actual network contention. Prior to exposing a public endpoint, verify D1 bindings, migrations, transaction and trigger behavior, cookies over HTTPS, multi-client conflicts, abuse controls and access policy. Existing shared UI calls the same endpoints; the build helper embeds those assets into the Worker artifact.
+
+`node worker/build.mjs` prepares `dist/server/index.js` for a supported Sites Worker deployment. Do not publish it until the existing `.openai/hosting.json` is correctly migrated to server-backed hosting and a D1 binding and schema migrations have been configured. Sites source synchronization and deployment must complete and be verified. Source repository connectivity was still failing with an HTTPS connection reset during investigation.
