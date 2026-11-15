@@ -1,33 +1,34 @@
-# EventLoop 双用户本机原型
+# EventLoop: local two-user prototype
 
-这是一个供同一台电脑上两个独立浏览器会话测试的原型：发布者登记物料，领取者申请，发布者接受，双方分别标记交接。数据保存在本机 SQLite 数据库；它还没有上线，也不能让其他设备通过公网访问。
+This prototype lets two separate browser sessions on one computer test a shared handoff: an owner lists an item, a claimant requests it, the owner accepts, and each participant records their confirmation. Data is stored in a local SQLite database. The prototype is not deployed and cannot be accessed over the internet.
 
-## 运行
+## Run locally
 
-需要 Node.js 24 或更新版本，无需安装第三方依赖。在 `eventloop` 目录运行：
+Install Node.js 24 or newer; no third-party dependencies are required. From the `eventloop` directory, run:
 
-```powershell
+```sh
 node shared/server.mjs
 ```
 
-打开 [http://127.0.0.1:8787](http://127.0.0.1:8787)。保持服务运行；在启动服务的终端按 Ctrl+C 可停止。默认数据保存在 `eventloop/.data/`，原有单浏览器 v2 数据不会自动导入。服务只监听本机回环地址；**不能直接用其他手机、其他电脑或公网访问**。
+Open <http://127.0.0.1:8787/> and leave the server running. Press Ctrl+C in the terminal to stop it. By default, data is stored in `eventloop/.data/`; data from the older single-browser prototype is not imported. The service listens only on the local machine and cannot be accessed directly from another device or the internet.
 
-## 一台电脑模拟两个人
+## Simulate two participants on one computer
 
-1. 在普通窗口打开 `http://127.0.0.1:8787`，注册账号 A。用户名是 3–32 位英文字母、数字、下划线或连字符；密码 8–128 位。**只用测试专用密码，不要用常用密码。**
-2. 在同一浏览器另开一个标签页，打开 `http://localhost:8787`，注册账号 B。两个不同主机名分别持有登录 Cookie，但访问的是同一本机数据库。如果 `localhost` 无法连接，请用另一浏览器或无痕窗口访问 `http://127.0.0.1:8787`。仅多开相同地址的普通标签页通常共用登录状态，不能模拟两个账号。
-3. 在 A 窗口发布一件物料，填写今天或之后的可领取日期及不早于该日期的清场日期。
-4. 直接交接：在 B 窗口点击「刷新」，选择两日期之间的领取日期，选择直接交接并提交申请。
-5. 暂存交接：先由有权管理场地的人登记暂存点、接收日期、保管截止日和物品格数量；B 选择清场日之后的领取日期与暂存点，提交申请。
-6. 在 A 窗口点击「刷新」，在交接记录中接受申请。服务端在接受时重新检查整段暂存日期的容量，接受成功才占用容量；冲突会被拒绝。A 和 B 各自刷新并点击「我确认已交接」，双方确认后显示完成。
+1. Open `http://127.0.0.1:8787/` and register account A. Usernames contain 3–32 letters, numbers, underscores or hyphens; passwords contain 8–128 characters. **Use passwords created only for testing.**
+2. Open `http://localhost:8787/` in another tab and register account B. The hostnames keep separate login cookies while sharing the same local database. If `localhost` does not connect, open `127.0.0.1` in another browser or a private window. Ordinary tabs using the same hostname normally share a login session.
+3. As A, list an item with an availability date of today or later and a clearance date on or after that date.
+4. For a direct handoff, refresh as B, choose a pickup date between availability and clearance, choose direct pickup and submit the request.
+5. For a storage bridge, first have someone authorised to offer a storage point register its intake dates, hold-until date and item-slot capacity. As B, choose a pickup date after clearance, select that storage point and submit the request.
+6. Refresh as A and accept the request in the handoff records. The server rechecks capacity across the whole storage interval and occupies a slot only when acceptance succeeds; conflicts are rejected. Refresh each session and confirm the handoff separately; the record is complete after both confirmations.
 
-请求被接受后，同一物料的其他待处理申请会被拒绝；未确认的申请可取消。状态不会实时推送，需要手动点击「刷新」或重新加载。请勿将本机测试账户、测试数据或数据库文件发布到公开仓库。
+When a request is accepted, other pending requests for that item are rejected. An unconfirmed request can be cancelled. Updates do not arrive automatically: use Refresh or reload the page. Do not publish test accounts, test data or database files.
 
-## 当前限制
+## Current limitations
 
-- 共享版支持直接交接和基于日期的暂存容量检查；日期以整天计且首尾都占用，一件物品占一格，不核验尺寸、材质、实际开放时间或运输。
-- 暂存点由用户登记，**没有储物点管理员的独立审批**。系统显示申请或接受不代表场地已真实预订或获授权；须由相关人员线下确认。
-- 未接入通知；数据更新需要手动刷新。旧版单浏览器数据不会自动导入。
-- 两人各自点击确认仅是系统记录，不独立证明发生物理交接或物料已被再次使用；也没有测量真实减废效果。
-- 没有真实合作的校园储物点、运输安排或真实用户试点。地点、日期和物料状况由发布者填写，需要双方自行核实。
-- 这是本机开发原型，并非已进行公网部署或安全审计的生产服务。访问控制、数据库托管、部署、隐私和跨设备测试仍需后续完成。
+- Storage capacity uses whole inclusive dates and one slot per item. It does not check dimensions, materials, actual opening hours or transport.
+- Users list storage themselves; **there is no separate approval by a storage manager**. An application or acceptance does not mean a space has actually been booked or authorised. Participants must arrange this independently.
+- There are no notifications or automatic live updates. The older single-browser prototype's data is not imported.
+- Two in-app confirmations are records, not independent proof of a physical transfer or later reuse. No real waste reduction has been measured.
+- There are no real campus storage partnerships, transport arrangements or user pilots represented by the demo. Users must verify the location, dates and condition themselves.
+- This is a local development prototype, not a publicly deployed or security-audited production service. Hosting, privacy, security and cross-device testing require further work.
+
